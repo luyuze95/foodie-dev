@@ -1,5 +1,8 @@
 package com.luyuze.service;
 
+import com.luyuze.pojo.Users;
+import com.luyuze.pojo.bo.UserBO;
+
 public interface UserService {
 
     /**
@@ -8,4 +11,11 @@ public interface UserService {
      * @return
      */
     boolean queryUsernameIsExist(String username);
+
+    /**
+     * 创建用户
+     * @param userBO
+     * @return
+     */
+    Users createUser(UserBO userBO);
 }
