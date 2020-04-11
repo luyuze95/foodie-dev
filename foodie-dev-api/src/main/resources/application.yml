@@ -27,6 +27,8 @@ spring:
 mybatis:
   type-aliases-package: com.luyuze.pojo         # 所有POJO类所在包路径
   mapper-locations: classpath:mapper/*.xml      # mapper映射文件
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 # 通用 Mapper 配置
 mapper:

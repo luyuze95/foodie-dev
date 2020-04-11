@@ -1,12 +1,13 @@
 package com.luyuze.controller;
 
 import com.luyuze.service.StuService;
-import com.luyuze.service.impl.StuServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
+@ApiIgnore
 @RestController
 public class StuFooController {
 
