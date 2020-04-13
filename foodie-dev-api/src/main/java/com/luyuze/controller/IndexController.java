@@ -4,6 +4,7 @@ import com.luyuze.enums.YesOrNo;
 import com.luyuze.pojo.Carousel;
 import com.luyuze.pojo.Category;
 import com.luyuze.pojo.vo.CategoryVO;
+import com.luyuze.pojo.vo.NewItemsVO;
 import com.luyuze.service.CarouselService;
 import com.luyuze.service.CategoryService;
 import com.luyuze.utils.MyJsonResult;
@@ -52,6 +53,18 @@ public class IndexController {
             return MyJsonResult.errorMsg("分类不存在");
         }
         List<CategoryVO> result = categoryService.getSubCatList(rootCatId);
+        return MyJsonResult.ok(result);
+    }
+
+    @ApiOperation(value = "查询每个一级分类下最新的6条商品数据", notes = "查询每个一级分类下最新的6条商品数据", httpMethod = "GET")
+    @GetMapping("/sixNewItems/{rootCatId}")
+    public MyJsonResult sixNewItems(
+            @ApiParam(name = "rootCatId", value = "一级分类id", required = true)
+            @PathVariable Integer rootCatId) {
+        if (rootCatId == null) {
+            return MyJsonResult.errorMsg("分类不存在");
+        }
+        List<NewItemsVO> result = categoryService.getSixNewItemsLazy(rootCatId);
         return MyJsonResult.ok(result);
     }
 }
