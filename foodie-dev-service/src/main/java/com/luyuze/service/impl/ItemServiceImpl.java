@@ -1,20 +1,22 @@
 package com.luyuze.service.impl;
 
-import com.luyuze.mapper.ItemsImgMapper;
-import com.luyuze.mapper.ItemsMapper;
-import com.luyuze.mapper.ItemsParamMapper;
-import com.luyuze.mapper.ItemsSpecMapper;
-import com.luyuze.pojo.Items;
-import com.luyuze.pojo.ItemsImg;
-import com.luyuze.pojo.ItemsParam;
-import com.luyuze.pojo.ItemsSpec;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.luyuze.enums.CommentLevel;
+import com.luyuze.mapper.*;
+import com.luyuze.pojo.*;
+import com.luyuze.pojo.vo.CommentLevelCountsVO;
+import com.luyuze.pojo.vo.ItemCommentVO;
 import com.luyuze.service.ItemService;
+import com.luyuze.utils.DesensitizationUtil;
+import com.luyuze.utils.PagedGridResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -31,6 +33,12 @@ public class ItemServiceImpl implements ItemService {
 
     @Autowired
     private ItemsParamMapper itemsParamMapper;
+
+    @Autowired
+    private ItemsCommentsMapper itemsCommentsMapper;
+
+    @Autowired
+    private ItemsMapperCustom itemsMapperCustom;
 
     /**
      * 根据商品id查询详情
@@ -87,5 +95,67 @@ public class ItemServiceImpl implements ItemService {
         Example.Criteria criteria = example.createCriteria();
         criteria.andEqualTo("itemId", itemId);
         return itemsParamMapper.selectOneByExample(example);
+    }
+
+    /**
+     * 根据商品id查询商品的各种评价的数目
+     *
+     * @param itemId
+     */
+    @Transactional(propagation = Propagation.SUPPORTS)
+    @Override
+    public CommentLevelCountsVO queryCommentCounts(String itemId) {
+        Integer goodCounts = getCommentCounts(itemId, CommentLevel.GOOD.type);
+        Integer normalCounts = getCommentCounts(itemId, CommentLevel.NORMAL.type);
+        Integer badCounts = getCommentCounts(itemId, CommentLevel.BAD.type);
+        Integer totalCounts = goodCounts + normalCounts + badCounts;
+        CommentLevelCountsVO countsVO = new CommentLevelCountsVO();
+        countsVO.setGoodCounts(goodCounts);
+        countsVO.setNormalCounts(normalCounts);
+        countsVO.setBadCounts(badCounts);
+        countsVO.setTotalCounts(totalCounts);
+        return countsVO;
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    Integer getCommentCounts(String itemId, Integer level) {
+        ItemsComments condition = new ItemsComments();
+        condition.setItemId(itemId);
+        if (level != null) {
+            condition.setCommentLevel(level);
+        }
+        return itemsCommentsMapper.selectCount(condition);
+    }
+
+    /**
+     * 根据商品id和评价等级查询商品评价
+     *
+     * @param itemId
+     * @param level
+     * @return
+     */
+    @Transactional(propagation = Propagation.SUPPORTS)
+    @Override
+    public PagedGridResult queryPagedComments(String itemId, Integer level,
+                                                  Integer page, Integer pageSize) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("itemId", itemId);
+        map.put("level", level);
+        PageHelper.startPage(page, pageSize);
+        List<ItemCommentVO> result = itemsMapperCustom.queryItemComments(map);
+        for (ItemCommentVO vo : result) {
+            vo.setNickname(DesensitizationUtil.commonDisplay(vo.getNickname()));
+        }
+        return setterPagedGrid(result, page);
+    }
+
+    private PagedGridResult setterPagedGrid(List<?> result, Integer page) {
+        PageInfo<?> pageList = new PageInfo<>(result);
+        PagedGridResult grid = new PagedGridResult();
+        grid.setPage(page);
+        grid.setRows(result);
+        grid.setTotal(pageList.getPages());
+        grid.setRecords(pageList.getTotal());
+        return grid;
     }
 }

@@ -4,6 +4,8 @@ import com.luyuze.pojo.Items;
 import com.luyuze.pojo.ItemsImg;
 import com.luyuze.pojo.ItemsParam;
 import com.luyuze.pojo.ItemsSpec;
+import com.luyuze.pojo.vo.CommentLevelCountsVO;
+import com.luyuze.utils.PagedGridResult;
 
 import java.util.List;
 
@@ -36,4 +38,19 @@ public interface ItemService {
      * @return
      */
     ItemsParam queryItemParam(String itemId);
+
+    /**
+     * 根据商品id查询商品的各种评价的数目
+     * @param itemId
+     */
+    CommentLevelCountsVO queryCommentCounts(String itemId);
+
+    /**
+     * 根据商品id和评价等级查询商品评价
+     * @param itemId
+     * @param level
+     * @return
+     */
+    PagedGridResult queryPagedComments(String itemId, Integer level,
+                                       Integer page, Integer pageSize);
 }

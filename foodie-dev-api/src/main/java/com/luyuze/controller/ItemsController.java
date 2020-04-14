@@ -1,30 +1,24 @@
 package com.luyuze.controller;
 
-import com.luyuze.enums.YesOrNo;
 import com.luyuze.pojo.*;
-import com.luyuze.pojo.vo.CategoryVO;
+import com.luyuze.pojo.vo.CommentLevelCountsVO;
 import com.luyuze.pojo.vo.ItemInfoVO;
-import com.luyuze.pojo.vo.NewItemsVO;
-import com.luyuze.service.CarouselService;
-import com.luyuze.service.CategoryService;
 import com.luyuze.service.ItemService;
 import com.luyuze.utils.MyJsonResult;
+import com.luyuze.utils.PagedGridResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @Api(value = "商品接口", tags = {"商品信息展示的相关接口"})
 @RestController
 @RequestMapping("items")
-public class ItemsController {
+public class ItemsController extends BaseController {
 
     @Autowired
     private ItemService itemService;
@@ -47,5 +41,41 @@ public class ItemsController {
         itemInfoVO.setItemSpecList(itemsSpecList);
         itemInfoVO.setItemParams(itemsParam);
         return MyJsonResult.ok(itemInfoVO);
+    }
+
+    @ApiOperation(value = "查询商品评价等级", notes = "查询商品评价等级", httpMethod = "GET")
+    @GetMapping("/commentLevel")
+    public MyJsonResult commentLevel(
+            @ApiParam(name = "itemId", value = "商品id", required = true)
+            @RequestParam String itemId) {
+        if (StringUtils.isBlank(itemId)) {
+            return MyJsonResult.errorMsg(null);
+        }
+        CommentLevelCountsVO countsVO = itemService.queryCommentCounts(itemId);
+        return MyJsonResult.ok(countsVO);
+    }
+
+    @ApiOperation(value = "查询商品评论", notes = "查询商品评论", httpMethod = "GET")
+    @GetMapping("/comments")
+    public MyJsonResult comments(
+            @ApiParam(name = "itemId", value = "商品id", required = true)
+            @RequestParam String itemId,
+            @ApiParam(name = "level", value = "商品评价等级")
+            @RequestParam Integer level,
+            @ApiParam(name = "page", value = "页数")
+            @RequestParam Integer page,
+            @ApiParam(name = "pageSize", value = "每页个数")
+            @RequestParam Integer pageSize) {
+        if (StringUtils.isBlank(itemId)) {
+            return MyJsonResult.errorMsg(null);
+        }
+        if (page == null) {
+            page = 1;
+        }
+        if (pageSize == null) {
+            pageSize = COMMENT_PAGE_SIZE;
+        }
+        PagedGridResult grid = itemService.queryPagedComments(itemId, level, page, pageSize);
+        return MyJsonResult.ok(grid);
     }
 }
