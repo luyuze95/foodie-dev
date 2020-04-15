@@ -7,6 +7,7 @@ import com.luyuze.mapper.*;
 import com.luyuze.pojo.*;
 import com.luyuze.pojo.vo.CommentLevelCountsVO;
 import com.luyuze.pojo.vo.ItemCommentVO;
+import com.luyuze.pojo.vo.SearchItemsVO;
 import com.luyuze.service.ItemService;
 import com.luyuze.utils.DesensitizationUtil;
 import com.luyuze.utils.PagedGridResult;
@@ -157,5 +158,45 @@ public class ItemServiceImpl implements ItemService {
         grid.setTotal(pageList.getPages());
         grid.setRecords(pageList.getTotal());
         return grid;
+    }
+
+    /**
+     * 搜索商品列表
+     *
+     * @param keywords
+     * @param sort
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Transactional(propagation = Propagation.SUPPORTS)
+    @Override
+    public PagedGridResult searchItems(String keywords, String sort, Integer page, Integer pageSize) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("keywords", keywords);
+        map.put("sort", sort);
+        PageHelper.startPage(page, pageSize);
+        List<SearchItemsVO> result = itemsMapperCustom.searchItems(map);
+        return setterPagedGrid(result, page);
+    }
+
+    /**
+     * 根据分类id搜索商品列表
+     *
+     * @param catId
+     * @param sort
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Transactional(propagation = Propagation.SUPPORTS)
+    @Override
+    public PagedGridResult searchItemsByThirdCat(Integer catId, String sort, Integer page, Integer pageSize) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("catId", catId);
+        map.put("sort", sort);
+        PageHelper.startPage(page, pageSize);
+        List<SearchItemsVO> result = itemsMapperCustom.searchItemsByThirdCat(map);
+        return setterPagedGrid(result, page);
     }
 }

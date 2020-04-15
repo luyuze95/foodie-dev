@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.luyuze.mapper.ItemsMapperCustom" >
 
-  <select id="queryItemComments" parameterType="Map" resultType="com.luyuze.pojo.vo.ItemCommentVO" >
+    <select id="queryItemComments" parameterType="Map" resultType="com.luyuze.pojo.vo.ItemCommentVO" >
     SELECT
         ic.comment_level as commentLevel,
         ic.content as content,
@@ -21,5 +21,90 @@
         <if test="paramsMap.level != null and paramsMap.level != ''">
             AND ic.comment_level = #{paramsMap.level}
         </if>
-  </select>
+    </select>
+    
+    <select id="searchItems" parameterType="Map" resultType="com.luyuze.pojo.vo.SearchItemsVO">
+        SELECT
+            i.id as itemId,
+            i.item_name as itemName,
+            i.sell_counts as sellCounts,
+            ii.url as imgUrl,
+            tempSpec.priceDiscount as price
+        FROM
+            items i
+        LEFT JOIN
+            items_img ii
+        ON
+            i.id = ii.item_id
+        LEFT JOIN
+            (
+            SELECT
+                    item_id, MIN(price_discount) as priceDiscount
+            FROM
+                    items_spec
+            GROUP BY
+                    item_id
+            ) tempSpec
+        ON
+            i.id = tempSpec.item_id
+        WHERE
+            ii.is_main = 1
+            <if test="paramsMap.keywords != null and paramsMap.keywords != ''">
+                AND i.item_name like '%${paramsMap.keywords}%'
+            </if>
+            ORDER BY
+            <choose>
+                <when test="paramsMap.sort == &quot;c&quot;">
+                    i.sell_counts DESC
+                </when>
+                <when test="paramsMap.sort == &quot;p&quot;">
+                    tempSpec.priceDiscount ASC
+                </when>
+                <otherwise>
+                    i.item_name ASC
+                </otherwise>
+            </choose>
+    </select>
+
+    <select id="searchItemsByThirdCat" parameterType="Map" resultType="com.luyuze.pojo.vo.SearchItemsVO">
+        SELECT
+        i.id as itemId,
+        i.item_name as itemName,
+        i.sell_counts as sellCounts,
+        ii.url as imgUrl,
+        tempSpec.priceDiscount as price
+        FROM
+        items i
+        LEFT JOIN
+        items_img ii
+        ON
+        i.id = ii.item_id
+        LEFT JOIN
+        (
+        SELECT
+        item_id, MIN(price_discount) as priceDiscount
+        FROM
+        items_spec
+        GROUP BY
+        item_id
+        ) tempSpec
+        ON
+        i.id = tempSpec.item_id
+        WHERE
+        ii.is_main = 1
+        AND
+        i.cat_id = #{paramsMap.catId}
+        ORDER BY
+        <choose>
+            <when test="paramsMap.sort == &quot;c&quot;">
+                i.sell_counts DESC
+            </when>
+            <when test="paramsMap.sort == &quot;p&quot;">
+                tempSpec.priceDiscount ASC
+            </when>
+            <otherwise>
+                i.item_name ASC
+            </otherwise>
+        </choose>
+    </select>
 </mapper>
